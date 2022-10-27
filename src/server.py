@@ -4,7 +4,7 @@ from sanic.response import text
 from src.config import DevelopmentConfig, ProductionConfig
 
 
-def create_app(args) -> Sanic:
+def create_app(args=None) -> Sanic:
     """Create and return Sanic application."""
 
     app = Sanic("StoreBackendApp")
