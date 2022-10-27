@@ -14,8 +14,8 @@ def create_app(args) -> Sanic:
     else:
         app.update_config(ProductionConfig)
 
-    @app.get("/")
-    async def hello(request):
-        return text("OK!")
+    from src.views.health_check import HealthCheckView
+
+    app.add_route(HealthCheckView.as_view(), "/health_check")
 
     return app
