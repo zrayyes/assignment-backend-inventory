@@ -1,4 +1,5 @@
 import pytest
+
 from src.server import create_app
 
 

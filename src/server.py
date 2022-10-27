@@ -1,6 +1,7 @@
-from sanic import Sanic
 import os
-from sanic.response import text
+
+from sanic import Sanic
+
 from src.config import DevelopmentConfig, ProductionConfig
 
 
