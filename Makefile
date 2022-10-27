@@ -25,11 +25,13 @@ shell:
 pytest:
 	$(exec) $(backend) pytest src/tests
 
-lint:
+flake:
 	$(exec) $(backend) flake8 src
 
-format:
+black:
 	$(exec) $(backend) black src
 
 isort:
 	$(exec) $(backend) isort src
+
+format: flake black isort
