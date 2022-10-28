@@ -6,17 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.config import DevelopmentConfig, ProductionConfig, TestingConfig
-
-
-async def setup_db(app):
-    from src.models import Base
-
-    async with app.ctx.db_engine.begin() as conn:
-        if app.ctx.CONFIG.RECREATE_TABLES:
-            await conn.run_sync(Base.metadata.drop_all)
-            await conn.run_sync(Base.metadata.create_all)
-        if app.ctx.CONFIG.SEED_DB:
-            ...
+from src.listeners import setup_db
 
 
 def create_app(args=None) -> Sanic:

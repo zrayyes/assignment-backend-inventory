@@ -5,7 +5,7 @@ from sanic.config import Config
 
 class BaseConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "RECREATE_TABLES", "sqlite+aiosqlite:///:memory:"
+        "SQLALCHEMY_DATABASE_URI", "sqlite+aiosqlite:///store.db"
     )
     RECREATE_TABLES = os.environ.get("RECREATE_TABLES", False) is True
     SEED_DB = os.environ.get("SEED_DB", False) is True

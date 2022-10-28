@@ -12,3 +12,4 @@ services:
       - 8000:8000
     environment:
       - SANIC_ENV=development
+      - SQLALCHEMY_DATABASE_URI=sqlite+aiosqlite:///store.db

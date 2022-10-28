@@ -27,8 +27,8 @@ class Item(Base):
     __tablename__ = "items"
     id = Column(Integer, primary_key=True)
     expiry_date = Column(DATETIME, nullable=False)
-    storage_space_id = Column(Integer, ForeignKey("storage_space.id"))
-    item_type_id = Column(Integer, ForeignKey("item_type.id"))
+    storage_space_id = Column(Integer, ForeignKey("storage_space.id"), nullable=False)
+    item_type_id = Column(Integer, ForeignKey("item_type.id"), nullable=False)
 
     storage_space = relationship("Space", back_populates="items")
     item_type = relationship("ItemType", back_populates="items")
