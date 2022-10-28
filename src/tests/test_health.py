@@ -14,4 +14,4 @@ def test_app_config(app):
     AppConfig = app.ctx.CONFIG
     assert os.getenv("SANIC_ENV") == "testing"
     assert type(AppConfig) == TestingConfig
-    assert AppConfig.TESTING == True
+    assert AppConfig.TESTING is True

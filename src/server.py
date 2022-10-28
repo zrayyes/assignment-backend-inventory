@@ -5,7 +5,7 @@ from sanic import Sanic
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.config import ProductionConfig, TestingConfig, DevelopmentConfig
+from src.config import DevelopmentConfig, ProductionConfig, TestingConfig
 
 
 def create_app(args=None) -> Sanic:

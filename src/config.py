@@ -1,5 +1,5 @@
 from sanic.config import Config
-import os
+
 
 class BaseConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite+aiosqlite:///:memory:"
