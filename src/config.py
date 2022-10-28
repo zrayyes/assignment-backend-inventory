@@ -20,3 +20,10 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     ...
+
+
+AppConfig = ProductionConfig()
+if os.getenv("SANIC_ENV") == "development":
+    AppConfig = DevelopmentConfig()
+if os.getenv("SANIC_ENV") == "testing":
+    AppConfig = TestingConfig()

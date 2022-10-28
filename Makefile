@@ -23,7 +23,7 @@ shell:
 	$(exec) $(backend) sh
 
 test:
-	$(exec) $(backend) pytest src/tests
+	$(exec) -e SANIC_ENV=testing $(backend) pytest src/tests"
 
 flake:
 	$(exec) $(backend) flake8 src

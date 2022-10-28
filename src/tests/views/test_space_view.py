@@ -1,5 +1,15 @@
-def test_get_all_items_for_storage(app):
-    _, response = app.test_client.get("/storage/space/1")
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_get_all_items_for_storage(
+    add_storage_space, add_item_type, add_item, app
+):
+    space = await add_storage_space("small space", 5, False)
+    item_type = await add_item_type("crackers", False)
+    await add_item(space, item_type)
+    _, response = await app.asgi_client.get(f"/storage/space/{space.id}")
 
     assert response.status == 200
-    assert response.json["items"] == []
+    assert len(response.json["items"]) == 1
+    assert response.json["items"][0]["type"] == "crackers"

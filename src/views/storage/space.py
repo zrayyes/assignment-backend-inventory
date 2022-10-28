@@ -4,14 +4,23 @@ from sanic.views import HTTPMethodView
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.models import Item
+from src.db import get_async_session
+from src.models import Item, Space
 
 
 class SingleStorageSpaceView(HTTPMethodView):
     async def get(self, request, id):
-        session = request.ctx.session
-        items = []
-        async with session.begin():
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            items = []
+            stmt = select(Space).where(Space.id == id)
+            result = await session.execute(stmt)
+            space = result.scalar()
+
+            if not space:
+                return json({})
+
             statement = (
                 select(Item)
                 .where(Item.storage_space_id == id)

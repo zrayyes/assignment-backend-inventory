@@ -1,48 +1,79 @@
+import asyncio
+import datetime
 import os
 
+import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sanic_testing import TestManager
 
-from src.config import TestingConfig
-from src.models import Base
+from src.db import async_engine, get_async_session
+from src.models import Base, Item, ItemType, Space
 from src.server import create_app
 
 
-async def drop_tables(engine):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
+async def create_tables():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
-@pytest_asyncio.fixture(scope="function")
-async def app():
+@pytest.fixture(scope="function")
+def app():
     os.environ["SANIC_ENV"] = "testing"
-    sanic_app = create_app()
+    app = create_app()
+    TestManager(app)
+    asyncio.run(create_tables())
 
-    _sessionmaker = sessionmaker(sanic_app.ctx.db_engine, AsyncSession)
-
-    # TODO: Refactor?
-    async with _sessionmaker():
-        async with sanic_app.ctx.db_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-    yield sanic_app
-
-    await drop_tables(sanic_app.ctx.db_engine)
+    return app
 
 
 @pytest_asyncio.fixture(scope="function")
-async def db_session():
+async def add_storage_space():
+    async def _add_storage_space(name, capacity, is_refrigerated):
+        async_session = await get_async_session()
 
-    engine = create_async_engine(TestingConfig.SQLALCHEMY_DATABASE_URI)
-    _sessionmaker = sessionmaker(engine, AsyncSession)
+        async with async_session() as session:
+            # TODO: Move to controller
+            space = Space(name=name, capacity=capacity, is_refrigerated=is_refrigerated)
+            session.add(space)
+            await session.commit()
+        return space
 
-    async with _sessionmaker() as session:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+    return _add_storage_space
 
-        yield session
 
-    await drop_tables(engine)
+@pytest_asyncio.fixture(scope="function")
+async def add_item_type():
+    async def _add_item_type(name, needs_fridge):
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            # TODO: Move to controller
+            item_type = ItemType(name=name, needs_fridge=needs_fridge)
+            session.add(item_type)
+            await session.commit()
+        return item_type
+
+    return _add_item_type
+
+
+@pytest_asyncio.fixture(scope="function")
+async def add_item():
+    async def _add_item(
+        storage_space,
+        item_type,
+        expiry_date=datetime.date.today() + datetime.timedelta(days=1),
+    ):
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            # TODO: Move to controller
+            item = Item(
+                storage_space_id=storage_space.id,
+                item_type_id=item_type.id,
+                expiry_date=expiry_date,
+            )
+            session.add(item)
+            await session.commit()
+        return item
+
+    return _add_item

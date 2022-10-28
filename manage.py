@@ -5,16 +5,13 @@ import datetime
 import sys
 
 from sqlalchemy import select, insert
-from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import BaseConfig
 from src.models import Base, Item, ItemType, Space
+from src.db import async_engine
 
 
 async def main():
-    engine = create_async_engine(BaseConfig.SQLALCHEMY_DATABASE_URI, echo=True)
-
-    async with engine.connect() as conn:
+    async with async_engine.connect() as conn:
         if "create_db" in sys.argv:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
@@ -82,4 +79,3 @@ if __name__ == "__main__":
         print("Unsupported arguments, Try:")
         print(supported_arguments)
         print("#" * 28)
-

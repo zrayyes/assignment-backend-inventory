@@ -2,49 +2,53 @@ import datetime
 
 import pytest
 
+from src.db import get_async_session
 from src.models import Item, ItemType, Space
 
 
 @pytest.mark.asyncio
-async def test_model_relationships(db_session):
-    # Items
-    item_1 = Item(expiry_date=datetime.date.today() + datetime.timedelta(days=1))
-    item_2 = Item(expiry_date=datetime.date.today() + datetime.timedelta(days=2))
+async def test_model_relationships(app):
+    async_session = await get_async_session()
 
-    # Storage Space
-    space = Space(
-        name="MYSPACE", capacity=100, is_refrigerated=True, items=[item_1, item_2]
-    )
+    async with async_session() as session:
+        # Items
+        item_1 = Item(expiry_date=datetime.date.today() + datetime.timedelta(days=1))
+        item_2 = Item(expiry_date=datetime.date.today() + datetime.timedelta(days=2))
 
-    # Item Types
-    item_type_1 = ItemType(name="TYPE1", needs_fridge=True, items=[item_1])
-    item_type_2 = ItemType(name="TYPE2", needs_fridge=True, items=[item_2])
+        # Storage Space
+        space = Space(
+            name="MYSPACE", capacity=100, is_refrigerated=True, items=[item_1, item_2]
+        )
 
-    # Add
-    db_session.add_all(
-        [
-            space,
-            item_type_1,
-            item_type_2,
-            item_1,
-            item_2,
-        ]
-    )
+        # Item Types
+        item_type_1 = ItemType(name="TYPE1", needs_fridge=True, items=[item_1])
+        item_type_2 = ItemType(name="TYPE2", needs_fridge=True, items=[item_2])
 
-    await db_session.flush()
+        # Add
+        session.add_all(
+            [
+                space,
+                item_type_1,
+                item_type_2,
+                item_1,
+                item_2,
+            ]
+        )
 
-    # Check Relationships
-    assert item_1 in space.items
-    assert item_2 in space.items
+        await session.flush()
 
-    assert item_1 in item_type_1.items
-    assert item_2 in item_type_2.items
+        # Check Relationships
+        assert item_1 in space.items
+        assert item_2 in space.items
 
-    # Check Foreign Keys
-    item_1_db = await db_session.get(Item, item_1.id)
-    assert item_1_db.storage_space_id == space.id
-    assert item_1_db.item_type_id == item_type_1.id
+        assert item_1 in item_type_1.items
+        assert item_2 in item_type_2.items
 
-    item_2_db = await db_session.get(Item, item_2.id)
-    assert item_2_db.storage_space_id == space.id
-    assert item_2_db.item_type_id == item_type_2.id
+        # Check Foreign Keys
+        item_1_db = await session.get(Item, item_1.id)
+        assert item_1_db.storage_space_id == space.id
+        assert item_1_db.item_type_id == item_type_1.id
+
+        item_2_db = await session.get(Item, item_2.id)
+        assert item_2_db.storage_space_id == space.id
+        assert item_2_db.item_type_id == item_type_2.id
