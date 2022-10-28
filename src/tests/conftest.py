@@ -1,26 +1,40 @@
 import os
 
-import pytest
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
+from src.config import TestingConfig
+from src.models import Base
 from src.server import create_app
 
 
-@pytest.fixture(scope="module")
-def app():
+async def drop_tables(engine):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def app():
     os.environ["SANIC_ENV"] = "testing"
     sanic_app = create_app()
 
-    return sanic_app
+    _sessionmaker = sessionmaker(sanic_app.ctx.db_engine, AsyncSession)
+
+    # TODO: Refactor?
+    async with _sessionmaker():
+        async with sanic_app.ctx.db_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    yield sanic_app
+
+    await drop_tables(sanic_app.ctx.db_engine)
 
 
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
-    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-    from sqlalchemy.orm import sessionmaker
-
-    from src.config import TestingConfig
-    from src.models import Base
 
     engine = create_async_engine(TestingConfig.SQLALCHEMY_DATABASE_URI)
     _sessionmaker = sessionmaker(engine, AsyncSession)
@@ -31,7 +45,4 @@ async def db_session():
 
         yield session
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
+    await drop_tables(engine)
