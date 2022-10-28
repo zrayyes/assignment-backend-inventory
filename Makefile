@@ -35,3 +35,9 @@ isort:
 	$(exec) $(backend) isort src
 
 format: black flake isort
+
+create_db:
+	$(exec) $(backend) python manage.py create_db
+
+seed_db:
+	$(exec) $(backend) python manage.py create_db seed_db

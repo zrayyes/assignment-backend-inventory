@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.config import DevelopmentConfig, ProductionConfig, TestingConfig
-from src.listeners import setup_db
 
 
 def create_app(args=None) -> Sanic:
@@ -44,8 +43,6 @@ def create_app(args=None) -> Sanic:
         if hasattr(request.ctx, "session_ctx_token"):
             _base_model_session_ctx.reset(request.ctx.session_ctx_token)
             await request.ctx.session.close()
-
-    app.register_listener(setup_db, "before_server_start")
 
     # Views
     from src.views.health_check import HealthCheckView

@@ -1,17 +1,24 @@
+# Script used to create SQL tables and seed with dummy data
+
+import asyncio
 import datetime
+import sys
 
-from sqlalchemy import insert, select
+from sqlalchemy import select, insert
+from sqlalchemy.ext.asyncio import create_async_engine
 
+from src.config import BaseConfig
 from src.models import Base, Item, ItemType, Space
 
 
-async def setup_db(app):
+async def main():
+    engine = create_async_engine(BaseConfig.SQLALCHEMY_DATABASE_URI, echo=True)
 
-    async with app.ctx.db_engine.begin() as conn:
-        if app.ctx.CONFIG.RECREATE_TABLES:
+    async with engine.connect() as conn:
+        if "create_db" in sys.argv:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
-        if app.ctx.CONFIG.SEED_DB:
+        if "seed_db" in sys.argv:
             # Storage Spaces
             await conn.execute(
                 insert(Space).values(name="Big", capacity=100, is_refrigerated=True)
@@ -62,3 +69,17 @@ async def setup_db(app):
                     item_type_id=pink_socks.id,
                 )
             )
+
+        await conn.commit()
+
+
+if __name__ == "__main__":
+    supported_arguments = ["create_db", "seed_db"]
+    if any(arg in sys.argv for arg in supported_arguments):
+        asyncio.run(main())
+    else:
+        print("#" * 28)
+        print("Unsupported arguments, Try:")
+        print(supported_arguments)
+        print("#" * 28)
+
