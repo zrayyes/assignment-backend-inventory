@@ -31,9 +31,20 @@ async def test_model_relationships(db_session):
         ]
     )
 
+    await db_session.flush()
+
     # Check Relationships
     assert item_1 in space.items
     assert item_2 in space.items
 
     assert item_1 in item_type_1.items
     assert item_2 in item_type_2.items
+
+    # Check Foreign Keys
+    item_1_db = await db_session.get(Item, item_1.id)
+    assert item_1_db.storage_space_id == space.id
+    assert item_1_db.item_type_id == item_type_1.id
+
+    item_2_db = await db_session.get(Item, item_2.id)
+    assert item_2_db.storage_space_id == space.id
+    assert item_2_db.item_type_id == item_type_2.id
