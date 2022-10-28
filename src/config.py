@@ -4,9 +4,11 @@ from sanic.config import Config
 
 
 class BaseConfig(Config):
-    SQLALCHEMY_DATABASE_URI = "sqlite+aiosqlite:///:memory:"
-    RECREATE_TABLES = os.environ.get("RECREATE_TABLES", False)
-    SEED_DB = os.environ.get("SEED_DB", False)
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "RECREATE_TABLES", "sqlite+aiosqlite:///:memory:"
+    )
+    RECREATE_TABLES = os.environ.get("RECREATE_TABLES", False) is True
+    SEED_DB = os.environ.get("SEED_DB", False) is True
 
 
 class DevelopmentConfig(BaseConfig):
@@ -16,7 +18,7 @@ class DevelopmentConfig(BaseConfig):
 
 class TestingConfig(BaseConfig):
     TESTING = True
-    RECREATE_TABLES = True
+    SQLALCHEMY_DATABASE_URI = "sqlite+aiosqlite:///:memory:"
 
 
 class ProductionConfig(BaseConfig):
