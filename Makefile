@@ -22,7 +22,7 @@ logs:
 shell:
 	$(exec) $(backend) sh
 
-pytest:
+test:
 	$(exec) $(backend) pytest src/tests
 
 flake:
@@ -34,4 +34,4 @@ black:
 isort:
 	$(exec) $(backend) isort src
 
-format: flake black isort
+format: black flake isort
