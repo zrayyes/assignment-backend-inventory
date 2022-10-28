@@ -5,7 +5,7 @@ from sanic import Sanic
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.config import DevelopmentConfig, ProductionConfig
+from src.config import ProductionConfig, TestingConfig, DevelopmentConfig
 
 
 def create_app(args=None) -> Sanic:
@@ -14,14 +14,20 @@ def create_app(args=None) -> Sanic:
     app = Sanic("StoreBackendApp")
 
     # Configuration
+    AppConfig = ProductionConfig()
     if os.getenv("SANIC_ENV") == "development":
-        app.update_config(DevelopmentConfig)
-    else:
-        app.update_config(ProductionConfig)
+        AppConfig = DevelopmentConfig()
+    if os.getenv("SANIC_ENV") == "testing":
+        AppConfig = TestingConfig()
+
+    app.ctx.CONFIG = AppConfig
+    app.update_config(AppConfig)
 
     # Database Setup & Middleware
     # https://sanic.dev/en/guide/how-to/orm.html#sqlalchemy
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)
+    engine = create_async_engine(AppConfig.SQLALCHEMY_DATABASE_URI, echo=True)
+
+    app.ctx.db_engine = engine
 
     _sessionmaker = sessionmaker(engine, AsyncSession, expire_on_commit=False)
 
