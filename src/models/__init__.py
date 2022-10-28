@@ -32,3 +32,11 @@ class Item(Base):
 
     storage_space = relationship("Space", back_populates="items")
     item_type = relationship("ItemType", back_populates="items")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "type": self.item_type.name,
+            "expiry_date": self.expiry_date.strftime("%c"),
+            "needs_fridge": self.item_type.needs_fridge,
+        }

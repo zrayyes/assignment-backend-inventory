@@ -45,8 +45,10 @@ def create_app(args=None) -> Sanic:
             await request.ctx.session.close()
 
     # Views
+    from src.views import storage_blueprint
     from src.views.health_check import HealthCheckView
 
     app.add_route(HealthCheckView.as_view(), "/health_check")
+    app.blueprint(storage_blueprint)
 
     return app
