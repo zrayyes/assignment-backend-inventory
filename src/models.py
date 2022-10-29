@@ -57,3 +57,6 @@ class Item(Base):
             "expiry_date": format_date_to_str(self.expiry_date),
             "needs_fridge": self.item_type.needs_fridge,
         }
+
+    def __lt__(self, other):
+        return self.expiry_date < other.expiry_date

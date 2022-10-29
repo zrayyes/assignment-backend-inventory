@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from sanic import Blueprint
 from sanic.exceptions import SanicException
@@ -28,8 +29,24 @@ class StorageSpaceUpdate:
     name: str
 
 
+@dataclass
+class SortPaginateParams:
+    sort: Optional[str] = None
+    count: Optional[int] = None
+    offset: Optional[int] = None
+
+
 class SingleStorageSpaceView(HTTPMethodView):
-    async def get(self, request, id):
+    @validate(query=SortPaginateParams)
+    async def get(self, request, id, query: SortPaginateParams):
+
+        if query.sort != "None":
+            if query.sort not in ["ASC", "DESC"]:
+                raise SanicException(
+                    "Invalid sort direction. Please use 'ASC' or 'DESC'.",
+                    status_code=403,
+                )
+
         async_session = await get_async_session()
 
         async with async_session() as session:
@@ -39,6 +56,14 @@ class SingleStorageSpaceView(HTTPMethodView):
                 raise SanicException("Storage space does not exist.", status_code=404)
 
             items = await get_all_items_for_storage_space(session, space.id)
+
+            # TODO: Optimize
+            if query.sort == "ASC":
+                items.sort()
+            if query.sort == "DESC":
+                items.sort()
+                items.reverse()
+
             items = [item.to_dict() for item in items]
 
         output = space.to_dict()
@@ -65,7 +90,6 @@ class SingleStorageSpaceView(HTTPMethodView):
     async def delete(self, request, id):
         async_session = await get_async_session()
 
-        # TODO: TRY/EXCEPT All Endpoints
         async with async_session() as session:
             space = await get_storage_space_by_id(session, id)
 

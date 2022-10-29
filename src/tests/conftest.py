@@ -1,6 +1,6 @@
 import asyncio
 import os
-
+from uuid import uuid4
 import pytest
 import pytest_asyncio
 from sanic_testing import TestManager
@@ -10,6 +10,8 @@ from src.db import async_engine, get_async_session
 from src.helpers import date_after_n_days
 from src.models import Base, Item, ItemType
 from src.server import create_app
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 
 async def create_tables():
@@ -42,7 +44,10 @@ async def add_storage_space():
 
 @pytest_asyncio.fixture(scope="function")
 async def add_item_type():
-    async def _add_item_type(name, needs_fridge):
+    async def _add_item_type(name=None, needs_fridge=False):
+        if not name:
+            name = str(uuid4())
+
         async_session = await get_async_session()
 
         async with async_session() as session:
@@ -73,6 +78,17 @@ async def add_item():
             )
             session.add(item)
             await session.commit()
+
+            # Fetch relationships
+            statement = (
+                select(Item)
+                .where(Item.id == item.id)
+                .options(selectinload(Item.storage_space))
+                .options(selectinload(Item.item_type))
+            )
+            result = await session.execute(statement)
+            item = result.scalars().first()
+
         return item
 
     return _add_item

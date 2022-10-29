@@ -1,4 +1,5 @@
 import pytest
+from src.helpers import date_after_n_days
 
 
 @pytest.mark.asyncio
@@ -24,6 +25,43 @@ async def test_get_all_items_for_storage_space_valid(
 async def test_get_all_items_for_storage_space_sorted(
     add_storage_space, add_item_type, add_item, app
 ):
+    space = await add_storage_space("small space", 5, False)
+
+    # Setup items
+    days = [3, 1, 500, 250]
+    items = []
+
+    for day in days:
+        item_type = await add_item_type(name=f"day {day}")
+        item = await add_item(space, item_type, date_after_n_days(day))
+        items.append(item)
+
+    # Test for ascending sort
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id, sort="ASC")
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 200
+    assert len(response.json["items"]) == 4
+
+    days.sort()
+    for index, item in enumerate(response.json["items"]):
+        assert item["type"] == f"day {days[index]}"
+
+    # Test for descending sort
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id, sort="DESC")
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 200
+    assert len(response.json["items"]) == 4
+
+    days.sort()
+    days.reverse()
+    for index, item in enumerate(response.json["items"]):
+        assert item["type"] == f"day {days[index]}"
+
+
+@pytest.mark.asyncio
+async def test_get_all_items_for_storage_space_sorted_invalid(app):
     pass
 
 
