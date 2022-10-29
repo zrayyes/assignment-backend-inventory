@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from sanic import Blueprint
 from sanic.exceptions import SanicException
 from sanic.response import json
@@ -7,6 +8,8 @@ from sqlalchemy.orm import selectinload
 
 from src.db import get_async_session
 from src.models import Item, Space
+
+from sanic_ext import validate
 
 
 class SingleStorageSpaceView(HTTPMethodView):
@@ -38,9 +41,26 @@ class SingleStorageSpaceView(HTTPMethodView):
         return json(output)
 
 
+@dataclass
+class StorageSpaceIn:
+    name: str
+    capacity: int
+    is_refrigerated: bool
+
+
 class StorageSpaceView(HTTPMethodView):
-    async def post(self, request):
-        ...
+    @validate(json=StorageSpaceIn)
+    async def post(self, request, body: StorageSpaceIn):
+        async_session = await get_async_session()
+        async with async_session() as session:
+            space = Space(
+                name=body.name,
+                capacity=body.capacity,
+                is_refrigerated=body.is_refrigerated,
+            )
+            session.add(space)
+            await session.commit()
+        return json(space.to_dict())
 
 
 storage_space_blueprint = Blueprint("storage_space")

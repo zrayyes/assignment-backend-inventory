@@ -37,13 +37,34 @@ async def test_get_all_items_for_storage_space_does_not_exist(app):
 
 @pytest.mark.asyncio
 async def test_create_new_storage_space_valid(app):
-    pass
+    body = {"name": "Big", "capacity": 100, "is_refrigerated": True}
+    url = app.url_for("storage_space.StorageSpaceView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 200
+    assert response.json["name"] == body["name"]
+    assert response.json["capacity"] == body["capacity"]
+    assert response.json["is_refrigerated"] == body["is_refrigerated"]
+    assert "id" in response.json
 
 
-# Add parameterize
 @pytest.mark.asyncio
-async def test_create_new_storage_space_invalid(app):
-    pass
+@pytest.mark.parametrize(
+    "request_body",
+    [
+        {"name": "Big", "is_refrigerated": True},
+        {
+            "name": "Big",
+            "capacity": 100,
+        },
+        {"capacity": 100, "is_refrigerated": True},
+    ],
+)
+async def test_create_new_storage_space_invalid(app, request_body):
+    url = app.url_for("storage_space.StorageSpaceView")
+    _, response = await app.asgi_client.post(url, json=request_body)
+
+    assert response.status == 400
 
 
 @pytest.mark.asyncio
