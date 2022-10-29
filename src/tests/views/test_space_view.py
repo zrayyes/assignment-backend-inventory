@@ -8,7 +8,9 @@ async def test_get_all_items_for_storage(
     space = await add_storage_space("small space", 5, False)
     item_type = await add_item_type("crackers", False)
     await add_item(space, item_type)
-    _, response = await app.asgi_client.get(f"/storage/space/{space.id}")
+
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.get(url)
 
     assert response.status == 200
     assert len(response.json["items"]) == 1
