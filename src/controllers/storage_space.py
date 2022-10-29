@@ -15,14 +15,23 @@ async def get_storage_space_by_id(session: AsyncSession, id: int) -> Optional[Sp
 
 
 async def get_all_items_for_storage_space(
-    session: AsyncSession, storage_space_id: int
+    session: AsyncSession, storage_space_id: int, sort_direction: Optional[str] = None
 ) -> List[Item]:
+
+    sort_by = None
+    if sort_direction == "ASC":
+        sort_by = Item.expiry_date
+    if sort_direction == "DESC":
+        sort_by = Item.expiry_date.desc()
+
     statement = (
         select(Item)
         .where(Item.storage_space_id == storage_space_id)
         .options(selectinload(Item.storage_space))
         .options(selectinload(Item.item_type))
+        .order_by(sort_by)
     )
+
     result = await session.execute(statement)
     return result.scalars().all()
 

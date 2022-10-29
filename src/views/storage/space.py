@@ -7,13 +7,11 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
 
-from src.controllers.storage_space import (
-    create_storage_space,
-    delete_storage_space,
-    get_all_items_for_storage_space,
-    get_storage_space_by_id,
-    update_storage_space,
-)
+from src.controllers.storage_space import (create_storage_space,
+                                           delete_storage_space,
+                                           get_all_items_for_storage_space,
+                                           get_storage_space_by_id,
+                                           update_storage_space)
 from src.db import get_async_session
 
 
@@ -55,14 +53,7 @@ class SingleStorageSpaceView(HTTPMethodView):
             if not space:
                 raise SanicException("Storage space does not exist.", status_code=404)
 
-            items = await get_all_items_for_storage_space(session, space.id)
-
-            # TODO: Optimize
-            if query.sort == "ASC":
-                items.sort()
-            if query.sort == "DESC":
-                items.sort()
-                items.reverse()
+            items = await get_all_items_for_storage_space(session, space.id, query.sort)
 
             items = [item.to_dict() for item in items]
 
