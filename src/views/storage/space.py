@@ -1,4 +1,5 @@
 from sanic import Blueprint
+from sanic.exceptions import SanicException
 from sanic.response import json
 from sanic.views import HTTPMethodView
 from sqlalchemy import select
@@ -13,13 +14,14 @@ class SingleStorageSpaceView(HTTPMethodView):
         async_session = await get_async_session()
 
         async with async_session() as session:
-            items = []
             stmt = select(Space).where(Space.id == id)
             result = await session.execute(stmt)
             space = result.scalar()
 
             if not space:
-                return json({})
+                raise SanicException("Storage space does not exist.", status_code=404)
+
+            items = []
 
             statement = (
                 select(Item)
@@ -30,13 +32,13 @@ class SingleStorageSpaceView(HTTPMethodView):
             result = await session.execute(statement)
             for item in result.scalars().all():
                 items.append(item.to_dict())
-        return json({"items": items})
+
+        output = space.to_dict()
+        output["items"] = items
+        return json(output)
 
 
 class StorageSpaceView(HTTPMethodView):
-    async def get(self, request):
-        ...
-
     async def post(self, request):
         ...
 

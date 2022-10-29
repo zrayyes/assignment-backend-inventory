@@ -6,11 +6,7 @@ from src.config import AppConfig
 def create_app(args=None) -> Sanic:
     """Create and return Sanic application."""
 
-    app = Sanic("StoreBackendApp")
-
-    # Configuration
-    app.ctx.CONFIG = AppConfig
-    app.update_config(AppConfig)
+    app = Sanic("StoreBackendApp", config=AppConfig)
 
     # Views
     from src.views import storage_blueprint

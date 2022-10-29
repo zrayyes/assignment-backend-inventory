@@ -7,6 +7,7 @@ class BaseConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "SQLALCHEMY_DATABASE_URI", "sqlite+aiosqlite:///store.db"
     )
+    FALLBACK_ERROR_FORMAT = "json"
 
 
 class DevelopmentConfig(BaseConfig):

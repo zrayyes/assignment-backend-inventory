@@ -13,9 +13,8 @@ async def test_health_check(app):
 
 @pytest.mark.asyncio
 async def test_app_config(app):
-    from src.config import TestingConfig
+    from src.config import AppConfig, TestingConfig
 
-    AppConfig = app.ctx.CONFIG
     assert os.getenv("SANIC_ENV") == "testing"
     assert type(AppConfig) == TestingConfig
     assert AppConfig.TESTING is True

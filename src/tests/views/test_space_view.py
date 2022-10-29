@@ -12,10 +12,12 @@ async def test_get_all_items_for_storage_space_valid(
     url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
     _, response = await app.asgi_client.get(url)
 
-    # TODO: Also return storage space info
     assert response.status == 200
     assert len(response.json["items"]) == 1
     assert response.json["items"][0]["type"] == "crackers"
+    assert response.json["name"] == "small space"
+    assert response.json["capacity"] == 5
+    assert response.json["is_refrigerated"] is False
 
 
 @pytest.mark.asyncio
@@ -25,33 +27,35 @@ async def test_get_all_items_for_storage_space_sorted(
     pass
 
 
+@pytest.mark.asyncio
+async def test_get_all_items_for_storage_space_does_not_exist(app):
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=1)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 404
+
+
+@pytest.mark.asyncio
+async def test_create_new_storage_space_valid(app):
+    pass
+
+
 # Add parameterize
 @pytest.mark.asyncio
-async def test_get_all_items_for_storage_space_invalid():
+async def test_create_new_storage_space_invalid(app):
     pass
 
 
 @pytest.mark.asyncio
-async def test_create_new_storage_space_valid():
-    pass
-
-
-# Add parameterize
-@pytest.mark.asyncio
-async def test_create_new_storage_space_invalid():
+async def test_rename_storage_space(app):
     pass
 
 
 @pytest.mark.asyncio
-async def test_rename_storage_space():
+async def test_delete_storage_space_empty(app):
     pass
 
 
 @pytest.mark.asyncio
-async def test_delete_storage_space_empty():
-    pass
-
-
-@pytest.mark.asyncio
-async def test_delete_storage_space_not_empty():
+async def test_delete_storage_space_not_empty(app):
     pass
