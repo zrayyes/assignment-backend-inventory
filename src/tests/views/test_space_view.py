@@ -58,6 +58,7 @@ async def test_create_new_storage_space_valid(app):
             "capacity": 100,
         },
         {"capacity": 100, "is_refrigerated": True},
+        {"name": "Big", "capacity": -1, "is_refrigerated": True},
     ],
 )
 async def test_create_new_storage_space_invalid(app, request_body):

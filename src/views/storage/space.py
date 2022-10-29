@@ -1,15 +1,15 @@
 from dataclasses import dataclass
+
 from sanic import Blueprint
 from sanic.exceptions import SanicException
 from sanic.response import json
 from sanic.views import HTTPMethodView
+from sanic_ext import validate
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.db import get_async_session
 from src.models import Item, Space
-
-from sanic_ext import validate
 
 
 class SingleStorageSpaceView(HTTPMethodView):
@@ -51,6 +51,10 @@ class StorageSpaceIn:
 class StorageSpaceView(HTTPMethodView):
     @validate(json=StorageSpaceIn)
     async def post(self, request, body: StorageSpaceIn):
+        if body.capacity < 0:
+            raise SanicException(
+                "Storage space cannot have capacity less than 0.", status_code=400
+            )
         async_session = await get_async_session()
         async with async_session() as session:
             space = Space(
