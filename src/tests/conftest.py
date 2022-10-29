@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import os
 
 import pytest
@@ -7,6 +6,7 @@ import pytest_asyncio
 from sanic_testing import TestManager
 
 from src.db import async_engine, get_async_session
+from src.helpers import date_after_n_days
 from src.models import Base, Item, ItemType, Space
 from src.server import create_app
 
@@ -61,7 +61,7 @@ async def add_item():
     async def _add_item(
         storage_space,
         item_type,
-        expiry_date=datetime.date.today() + datetime.timedelta(days=1),
+        expiry_date=date_after_n_days(1),
     ):
         async_session = await get_async_session()
 

@@ -1,6 +1,8 @@
 from sqlalchemy import DATETIME, Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base, relationship
 
+from src.helpers import format_date_to_str
+
 Base = declarative_base()
 
 
@@ -13,6 +15,14 @@ class Space(Base):
 
     items = relationship("Item", back_populates="storage_space")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "capacity": self.capacity,
+            "is_refrigerated": self.is_refrigerated,
+        }
+
 
 class ItemType(Base):
     __tablename__ = "item_type"
@@ -21,6 +31,13 @@ class ItemType(Base):
     needs_fridge = Column(Boolean)
 
     items = relationship("Item", back_populates="item_type")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "needs_fridge": self.needs_fridge,
+        }
 
 
 class Item(Base):
@@ -37,6 +54,6 @@ class Item(Base):
         return {
             "id": self.id,
             "type": self.item_type.name,
-            "expiry_date": self.expiry_date.strftime("%c"),
+            "expiry_date": format_date_to_str(self.expiry_date),
             "needs_fridge": self.item_type.needs_fridge,
         }

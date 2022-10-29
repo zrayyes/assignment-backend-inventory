@@ -1,8 +1,7 @@
-import datetime
-
 import pytest
 
 from src.db import get_async_session
+from src.helpers import date_after_n_days
 from src.models import Item, ItemType, Space
 
 
@@ -12,8 +11,8 @@ async def test_model_relationships(app):
 
     async with async_session() as session:
         # Items
-        item_1 = Item(expiry_date=datetime.date.today() + datetime.timedelta(days=1))
-        item_2 = Item(expiry_date=datetime.date.today() + datetime.timedelta(days=2))
+        item_1 = Item(expiry_date=date_after_n_days(1))
+        item_2 = Item(expiry_date=date_after_n_days(1))
 
         # Storage Space
         space = Space(

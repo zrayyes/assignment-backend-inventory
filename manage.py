@@ -1,10 +1,10 @@
 # Script used to create SQL tables and seed with dummy data
 
 import asyncio
-import datetime
 import sys
 
 from sqlalchemy import select, insert
+from src.helpers import date_after_n_days
 
 from src.models import Base, Item, ItemType, Space
 from src.db import async_engine
@@ -52,7 +52,7 @@ async def main():
             # Add items
             await conn.execute(
                 insert(Item).values(
-                    expiry_date=datetime.date.today() + datetime.timedelta(days=1),
+                    expiry_date=date_after_n_days(1),
                     storage_space_id=big_storage.id,
                     item_type_id=vanilla_icecream.id,
                 )
@@ -60,8 +60,7 @@ async def main():
 
             await conn.execute(
                 insert(Item).values(
-                    expiry_date=datetime.date.today()
-                    + datetime.timedelta(days=365 * 100),
+                    expiry_date=date_after_n_days(365),
                     storage_space_id=small_storage.id,
                     item_type_id=pink_socks.id,
                 )
