@@ -31,17 +31,34 @@ class StorageSpaceUpdate:
 class SortPaginateParams:
     sort: Optional[str] = None
     count: Optional[int] = None
-    offset: Optional[int] = None
+    offset: int = 0
 
 
 class SingleStorageSpaceView(HTTPMethodView):
     @validate(query=SortPaginateParams)
     async def get(self, request, id, query: SortPaginateParams):
 
+        # valdidate sorting
         if query.sort != "None":
             if query.sort not in ["ASC", "DESC"]:
                 raise SanicException(
                     "Invalid sort direction. Please use 'ASC' or 'DESC'.",
+                    status_code=403,
+                )
+
+        # valdidate count
+        if query.count:
+            if query.count < 0:
+                raise SanicException(
+                    "Please enter count greater that or equal to 0.",
+                    status_code=403,
+                )
+
+        # valdidate offset
+        if query.offset:
+            if query.offset < 0:
+                raise SanicException(
+                    "Please enter offset greater that or equal to 0.",
                     status_code=403,
                 )
 
@@ -54,6 +71,12 @@ class SingleStorageSpaceView(HTTPMethodView):
                 raise SanicException("Storage space does not exist.", status_code=404)
 
             items = await get_all_items_for_storage_space(session, space.id, query.sort)
+
+            offset = query.offset
+            count = query.count
+            if count:
+                count = count + offset
+            items = items[offset:count]
 
             items = [item.to_dict() for item in items]
 

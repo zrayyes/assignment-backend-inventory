@@ -62,6 +62,44 @@ async def test_get_all_items_for_storage_space_sorted(
 
 
 @pytest.mark.asyncio
+async def test_get_all_items_for_storage_space_sorted_and_paginated(
+    add_storage_space, add_item_type, add_item, app
+):
+    space = await add_storage_space("small space", 5, False)
+
+    # Setup items
+    days = [3, 1, 500, 250]
+    items = []
+
+    for day in days:
+        item_type = await add_item_type(name=f"day {day}")
+        item = await add_item(space, item_type, date_after_n_days(day))
+        items.append(item)
+
+    # Fetch first page
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id, count=2)
+    _, response = await app.asgi_client.get(url)
+
+    # Validate first page
+    assert response.status == 200
+    assert len(response.json["items"]) == 2
+    assert response.json["items"][0]["type"] == f"day {days[0]}"
+    assert response.json["items"][1]["type"] == f"day {days[1]}"
+
+    # Fetch second page
+    url = app.url_for(
+        "storage_space.SingleStorageSpaceView", id=space.id, count=2, offset=2
+    )
+    _, response = await app.asgi_client.get(url)
+
+    # Validate second page
+    assert response.status == 200
+    assert len(response.json["items"]) == 2
+    assert response.json["items"][0]["type"] == f"day {days[2]}"
+    assert response.json["items"][1]["type"] == f"day {days[3]}"
+
+
+@pytest.mark.asyncio
 async def test_get_all_items_for_storage_space_sorted_invalid(app):
     pass
 
