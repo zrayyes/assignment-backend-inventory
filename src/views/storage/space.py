@@ -70,13 +70,9 @@ class SingleStorageSpaceView(HTTPMethodView):
             if not space:
                 raise SanicException("Storage space does not exist.", status_code=404)
 
-            items = await get_all_items_for_storage_space(session, space.id, query.sort)
-
-            offset = query.offset
-            count = query.count
-            if count:
-                count = count + offset
-            items = items[offset:count]
+            items = await get_all_items_for_storage_space(
+                session, space.id, query.sort, query.count, query.offset
+            )
 
             items = [item.to_dict() for item in items]
 
