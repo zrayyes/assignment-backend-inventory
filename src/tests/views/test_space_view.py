@@ -4,25 +4,6 @@ from src.helpers import date_after_n_days
 
 
 @pytest.mark.asyncio
-async def test_get_all_items_for_storage_space_valid(
-    add_storage_space, add_item_type, add_item, app
-):
-    space = await add_storage_space("small space", 5, False)
-    item_type = await add_item_type("crackers", False)
-    await add_item(space, item_type)
-
-    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
-    _, response = await app.asgi_client.get(url)
-
-    assert response.status == 200
-    assert len(response.json["items"]) == 1
-    assert response.json["items"][0]["type"] == "crackers"
-    assert response.json["name"] == "small space"
-    assert response.json["capacity"] == 5
-    assert response.json["is_refrigerated"] is False
-
-
-@pytest.mark.asyncio
 async def test_get_all_items_for_storage_space_sorted(
     add_storage_space, add_item_type, add_item, app
 ):
@@ -100,8 +81,27 @@ async def test_get_all_items_for_storage_space_sorted_and_paginated(
 
 
 @pytest.mark.asyncio
-async def test_get_all_items_for_storage_space_sorted_invalid(app):
-    pass
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"sort": "Big", "count": 0, "offset": 0},
+        {"sort": "ASC", "count": -1, "offset": 0},
+        {"sort": "DESC", "count": 0, "offset": -1},
+    ],
+)
+async def test_get_all_items_for_storage_space_invalid(app, add_storage_space, params):
+    space = await add_storage_space("small space", 5, False)
+
+    url = app.url_for(
+        "storage_space.SingleStorageSpaceView",
+        id=space.id,
+        sort=params["sort"],
+        count=params["count"],
+        offset=params["offset"],
+    )
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 403
 
 
 @pytest.mark.asyncio
