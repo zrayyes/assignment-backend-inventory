@@ -27,6 +27,12 @@ async def get_all_items_for_storage_space(
     return result.scalars().all()
 
 
+async def update_storage_space(session: AsyncSession, space: Space, **kwargs) -> Space:
+    if "name" in kwargs:
+        space.name = kwargs["name"]
+    await session.commit()
+
+
 async def create_storage_space(
     session: AsyncSession, name: str, capacity: int, is_refrigerated: bool
 ) -> Space:

@@ -8,8 +8,21 @@ from sanic_ext import validate
 
 from src.controllers.storage_space import (create_storage_space,
                                            get_all_items_for_storage_space,
-                                           get_storage_space_by_id)
+                                           get_storage_space_by_id,
+                                           update_storage_space)
 from src.db import get_async_session
+
+
+@dataclass
+class StorageSpaceIn:
+    name: str
+    capacity: int
+    is_refrigerated: bool
+
+
+@dataclass
+class StorageSpaceUpdate:
+    name: str
 
 
 class SingleStorageSpaceView(HTTPMethodView):
@@ -29,12 +42,21 @@ class SingleStorageSpaceView(HTTPMethodView):
         output["items"] = items
         return json(output)
 
+    @validate(json=StorageSpaceUpdate)
+    async def patch(self, request, id, body: StorageSpaceUpdate):
+        async_session = await get_async_session()
+        async with async_session() as session:
+            space = await get_storage_space_by_id(session, id)
 
-@dataclass
-class StorageSpaceIn:
-    name: str
-    capacity: int
-    is_refrigerated: bool
+            if not space:
+                raise SanicException("Storage space does not exist.", status_code=404)
+
+            update = {}
+            update["name"] = body.name
+
+            await update_storage_space(session, space, **update)
+
+        return json(space.to_dict())
 
 
 class StorageSpaceView(HTTPMethodView):

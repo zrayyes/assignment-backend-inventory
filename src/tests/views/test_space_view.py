@@ -69,8 +69,18 @@ async def test_create_new_storage_space_invalid(app, request_body):
 
 
 @pytest.mark.asyncio
-async def test_rename_storage_space(app):
-    pass
+async def test_rename_storage_space(add_storage_space, app):
+    space = await add_storage_space("small space", 5, False)
+
+    body = {"name": "bigger space"}
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 200
+    assert response.json["name"] == body["name"]
+    assert response.json["capacity"] == space.capacity
+    assert response.json["is_refrigerated"] == space.is_refrigerated
+    assert response.json["id"] == space.id
 
 
 @pytest.mark.asyncio
