@@ -99,5 +99,20 @@ async def test_delete_storage_space_empty(add_storage_space, app):
 
 
 @pytest.mark.asyncio
-async def test_delete_storage_space_not_empty(app):
-    pass
+async def test_delete_storage_space_not_empty(
+    add_storage_space, add_item_type, add_item, app
+):
+    space = await add_storage_space("small space", 5, False)
+    item_type = await add_item_type("crackers", False)
+    await add_item(space, item_type)
+
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.delete(url)
+
+    assert response.status == 403
+    assert response.json["message"] == "Storage space still has items attached."
+
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 200

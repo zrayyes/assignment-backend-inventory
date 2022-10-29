@@ -77,7 +77,7 @@ class SingleStorageSpaceView(HTTPMethodView):
 
             if items:
                 raise SanicException(
-                    "Storage space still has items attached.", status_code=404
+                    "Storage space still has items attached.", status_code=403
                 )
 
             await delete_storage_space(session, space.id)
