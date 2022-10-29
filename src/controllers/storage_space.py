@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -44,3 +44,8 @@ async def create_storage_space(
     session.add(space)
     await session.commit()
     return space
+
+
+async def delete_storage_space(session: AsyncSession, id: int):
+    await session.execute(delete(Space).where(Space.id == id))
+    await session.commit()

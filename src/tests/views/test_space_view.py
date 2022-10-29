@@ -84,8 +84,18 @@ async def test_rename_storage_space(add_storage_space, app):
 
 
 @pytest.mark.asyncio
-async def test_delete_storage_space_empty(app):
-    pass
+async def test_delete_storage_space_empty(add_storage_space, app):
+    space = await add_storage_space("small space", 5, False)
+
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.delete(url)
+
+    assert response.status == 201
+
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 404
 
 
 @pytest.mark.asyncio

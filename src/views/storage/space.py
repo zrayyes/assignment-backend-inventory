@@ -6,10 +6,13 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
 
-from src.controllers.storage_space import (create_storage_space,
-                                           get_all_items_for_storage_space,
-                                           get_storage_space_by_id,
-                                           update_storage_space)
+from src.controllers.storage_space import (
+    create_storage_space,
+    delete_storage_space,
+    get_all_items_for_storage_space,
+    get_storage_space_by_id,
+    update_storage_space,
+)
 from src.db import get_async_session
 
 
@@ -45,6 +48,7 @@ class SingleStorageSpaceView(HTTPMethodView):
     @validate(json=StorageSpaceUpdate)
     async def patch(self, request, id, body: StorageSpaceUpdate):
         async_session = await get_async_session()
+
         async with async_session() as session:
             space = await get_storage_space_by_id(session, id)
 
@@ -57,6 +61,27 @@ class SingleStorageSpaceView(HTTPMethodView):
             await update_storage_space(session, space, **update)
 
         return json(space.to_dict())
+
+    async def delete(self, request, id):
+        async_session = await get_async_session()
+
+        # TODO: TRY/EXCEPT All Endpoints
+        async with async_session() as session:
+            space = await get_storage_space_by_id(session, id)
+
+            if not space:
+                raise SanicException("Storage space does not exist.", status_code=404)
+
+            # Could be optimized
+            items = await get_all_items_for_storage_space(session, space.id)
+
+            if items:
+                raise SanicException(
+                    "Storage space still has items attached.", status_code=404
+                )
+
+            await delete_storage_space(session, space.id)
+        return json({}, status=201)
 
 
 class StorageSpaceView(HTTPMethodView):
