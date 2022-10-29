@@ -5,11 +5,11 @@ from sanic.exceptions import SanicException
 from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
+from src.controllers.storage_space import (create_storage_space,
+                                           get_all_items_for_storage_space,
+                                           get_storage_space_by_id)
 from src.db import get_async_session
-from src.models import Item, Space
 
 
 class SingleStorageSpaceView(HTTPMethodView):
@@ -17,24 +17,13 @@ class SingleStorageSpaceView(HTTPMethodView):
         async_session = await get_async_session()
 
         async with async_session() as session:
-            stmt = select(Space).where(Space.id == id)
-            result = await session.execute(stmt)
-            space = result.scalar()
+            space = await get_storage_space_by_id(session, id)
 
             if not space:
                 raise SanicException("Storage space does not exist.", status_code=404)
 
-            items = []
-
-            statement = (
-                select(Item)
-                .where(Item.storage_space_id == id)
-                .options(selectinload(Item.storage_space))
-                .options(selectinload(Item.item_type))
-            )
-            result = await session.execute(statement)
-            for item in result.scalars().all():
-                items.append(item.to_dict())
+            items = await get_all_items_for_storage_space(session, space.id)
+            items = [item.to_dict() for item in items]
 
         output = space.to_dict()
         output["items"] = items
@@ -57,13 +46,12 @@ class StorageSpaceView(HTTPMethodView):
             )
         async_session = await get_async_session()
         async with async_session() as session:
-            space = Space(
+            space = await create_storage_space(
+                session,
                 name=body.name,
                 capacity=body.capacity,
                 is_refrigerated=body.is_refrigerated,
             )
-            session.add(space)
-            await session.commit()
         return json(space.to_dict())
 
 

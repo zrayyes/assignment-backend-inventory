@@ -5,9 +5,10 @@ import pytest
 import pytest_asyncio
 from sanic_testing import TestManager
 
+from src.controllers.storage_space import create_storage_space
 from src.db import async_engine, get_async_session
 from src.helpers import date_after_n_days
-from src.models import Base, Item, ItemType, Space
+from src.models import Base, Item, ItemType
 from src.server import create_app
 
 
@@ -33,10 +34,7 @@ async def add_storage_space():
         async_session = await get_async_session()
 
         async with async_session() as session:
-            # TODO: Move to controller
-            space = Space(name=name, capacity=capacity, is_refrigerated=is_refrigerated)
-            session.add(space)
-            await session.commit()
+            space = await create_storage_space(session, name, capacity, is_refrigerated)
         return space
 
     return _add_storage_space
