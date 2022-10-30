@@ -171,7 +171,20 @@ async def test_create_item_with_non_existing_type(app, add_storage_space):
 async def test_move_item_to_valid_storage(
     app, add_item, add_storage_space, add_item_type
 ):
-    pass
+    space = await add_storage_space("small space", 5, False)
+    space_2 = await add_storage_space("bigger space", 15, False)
+    item_type = await add_item_type("crackers", False)
+    item = await add_item(space, item_type)
+
+    body = {
+        "storage_space_id": space_2.id,
+    }
+    url = app.url_for("item.SingleItemView", id=item.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 200
+    assert response.json["type"] == item_type.name
+    assert response.json["storage_space"] == space_2.name
 
 
 @pytest.mark.asyncio

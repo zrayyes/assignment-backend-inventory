@@ -8,7 +8,7 @@ from sanic_ext import validate
 
 from src.controllers.item import (ExpiredDate, IncompatibleStorageSpace,
                                   StorageSpaceFull, create_item, delete_item,
-                                  get_item_by_id)
+                                  get_item_by_id, update_item)
 from src.controllers.item_type import get_item_type_by_id
 from src.controllers.storage_space import get_storage_space_by_id
 from src.db import get_async_session
@@ -20,6 +20,11 @@ class NewItemIn:
     expiry_date: str
     storage_space_id: int
     item_type_id: int
+
+
+@dataclass
+class ItemUpdateIn:
+    storage_space_id: int
 
 
 class ItemView(HTTPMethodView):
@@ -83,6 +88,25 @@ class SingleItemView(HTTPMethodView):
 
             await delete_item(session, id)
         return json({}, status=201)
+
+    @validate(json=ItemUpdateIn)
+    async def patch(self, request, id, body: ItemUpdateIn):
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            item = await get_item_by_id(session, id)
+
+            if not item:
+                raise SanicException("Item does not exist.", status_code=404)
+
+            space = await get_storage_space_by_id(session, body.storage_space_id)
+
+            if not space:
+                raise SanicException("Storage space does not exist.", status_code=404)
+
+            item = await update_item(session, item, space)
+
+        return json(item.to_dict())
 
 
 item_blueprint = Blueprint("item")

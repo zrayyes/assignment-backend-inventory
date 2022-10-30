@@ -54,7 +54,7 @@ async def get_all_items_for_storage_space(
     return result.scalars().all()
 
 
-async def update_storage_space(session: AsyncSession, space: Space, **kwargs) -> Space:
+async def update_storage_space(session: AsyncSession, space: Space, **kwargs):
     if "name" in kwargs:
         space.name = kwargs["name"]
     await session.commit()
