@@ -1,5 +1,10 @@
 from sanic import Blueprint
+from sanic.exceptions import SanicException
+from sanic.response import json
 from sanic.views import HTTPMethodView
+
+from src.controllers.item import get_item_by_id
+from src.db import get_async_session
 
 
 class ItemView(HTTPMethodView):
@@ -8,8 +13,16 @@ class ItemView(HTTPMethodView):
 
 
 class SingleItemView(HTTPMethodView):
-    async def get(self, request):
-        ...
+    async def get(self, request, id):
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            item = await get_item_by_id(session, id)
+
+            if not item:
+                raise SanicException("Item does not exist.", status_code=404)
+
+        return json(item.to_dict())
 
 
 item_blueprint = Blueprint("item")

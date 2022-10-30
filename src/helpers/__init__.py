@@ -7,4 +7,4 @@ def date_after_n_days(days: int) -> date:
 
 
 def format_date_to_str(date: date) -> str:
-    return date.strftime("%c")
+    return date.strftime("%d/%m/%Y, %H:%M:%S")

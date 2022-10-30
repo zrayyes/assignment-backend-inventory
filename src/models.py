@@ -54,6 +54,7 @@ class Item(Base):
         return {
             "id": self.id,
             "type": self.item_type.name,
+            "storage_space": self.storage_space.name,
             "expiry_date": format_date_to_str(self.expiry_date),
             "needs_fridge": self.item_type.needs_fridge,
         }
