@@ -104,7 +104,16 @@ class SingleItemView(HTTPMethodView):
             if not space:
                 raise SanicException("Storage space does not exist.", status_code=404)
 
-            item = await update_item(session, item, space)
+            try:
+                item = await update_item(session, item, space)
+            except ExpiredDate:
+                raise SanicException("Date cannot be in the past.", status_code=403)
+            except StorageSpaceFull:
+                raise SanicException("Storage space is full.", status_code=403)
+            except IncompatibleStorageSpace:
+                raise SanicException(
+                    "Storage space is not compatible.", status_code=403
+                )
 
         return json(item.to_dict())
 

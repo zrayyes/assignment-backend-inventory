@@ -188,21 +188,64 @@ async def test_move_item_to_valid_storage(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "space_is_refrigerated, item_type_needs_fridge",
+    [(False, True), (True, False)],
+)
 async def test_move_item_to_incompatible_storage(
-    app, add_item, add_storage_space, add_item_type
+    app,
+    add_item,
+    add_storage_space,
+    add_item_type,
+    space_is_refrigerated,
+    item_type_needs_fridge,
 ):
-    pass
+    space = await add_storage_space("small space", 5, False)
+    space_2 = await add_storage_space("bigger space", 15, space_is_refrigerated)
+    item_type = await add_item_type("crackers", item_type_needs_fridge)
+    item = await add_item(space, item_type)
+
+    body = {
+        "storage_space_id": space_2.id,
+    }
+    url = app.url_for("item.SingleItemView", id=item.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 403
 
 
 @pytest.mark.asyncio
 async def test_move_item_to_full_storage(
     app, add_item, add_storage_space, add_item_type
 ):
-    pass
+    space = await add_storage_space("small space", 5, False)
+    space_2 = await add_storage_space("tiny space", 1, False)
+    item_type = await add_item_type("crackers", False)
+    await add_item(space_2, item_type)
+
+    item = await add_item(space, item_type)
+
+    body = {
+        "storage_space_id": space_2.id,
+    }
+    url = app.url_for("item.SingleItemView", id=item.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 403
 
 
 @pytest.mark.asyncio
 async def test_move_item_to_non_existing_storage(
     app, add_item, add_storage_space, add_item_type
 ):
-    pass
+    space = await add_storage_space("small space", 5, False)
+    item_type = await add_item_type("crackers", False)
+    item = await add_item(space, item_type)
+
+    body = {
+        "storage_space_id": 15,
+    }
+    url = app.url_for("item.SingleItemView", id=item.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 404
