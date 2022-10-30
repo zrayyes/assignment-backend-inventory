@@ -6,7 +6,8 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
 
-from src.controllers.item_type import create_item_type, get_item_type_by_name
+from src.controllers.item_type import (create_item_type, get_item_type_by_id,
+                                       get_item_type_by_name)
 from src.db import get_async_session
 
 
@@ -23,7 +24,15 @@ class ItemTypeUpdate:
 
 class SingleItemTypeView(HTTPMethodView):
     async def get(self, request, id):
-        pass
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            item_type = await get_item_type_by_id(session, id)
+
+            if not item_type:
+                raise SanicException("Item type does not exist.", status_code=404)
+
+        return json(item_type.to_dict())
 
     @validate(json=ItemTypeUpdate)
     async def patch(self, request, id, body: ItemTypeUpdate):

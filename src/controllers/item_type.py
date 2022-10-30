@@ -18,6 +18,13 @@ async def create_item_type(
     return item_type
 
 
+async def get_item_type_by_id(session: AsyncSession, id: int) -> Optional[ItemType]:
+    stmt = select(ItemType).where(ItemType.id == id)
+    result = await session.execute(stmt)
+    item_type = result.scalar()
+    return item_type
+
+
 async def get_item_type_by_name(session: AsyncSession, name: str) -> Optional[ItemType]:
     stmt = select(ItemType).where(ItemType.name == name)
     result = await session.execute(stmt)

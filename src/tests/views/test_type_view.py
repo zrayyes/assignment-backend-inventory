@@ -42,13 +42,23 @@ async def test_create_item_type_duplicate_name(add_item_type, app):
 
 
 @pytest.mark.asyncio
-async def test_get_existing_item_type(app):
-    pass
+async def test_get_existing_item_type(app, add_item_type):
+    item_type = await add_item_type("Milk", True)
+
+    url = app.url_for("item_type.SingleItemTypeView", id=item_type.id)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 200
+    assert response.json["name"] == "Milk"
+    assert response.json["needs_fridge"] is True
 
 
 @pytest.mark.asyncio
 async def test_get_non_existing_item_type(app):
-    pass
+    url = app.url_for("item_type.SingleItemTypeView", id=1)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 404
 
 
 @pytest.mark.asyncio
