@@ -5,10 +5,15 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.controllers.storage_space import get_storage_space_usage
 from src.models import Item, ItemType, Space
 
 
 class ExpiredDate(Exception):
+    pass
+
+
+class StorageSpaceFull(Exception):
     pass
 
 
@@ -35,6 +40,11 @@ async def create_item(
     # Check if date in the past
     if expiry_date <= date.today():
         raise ExpiredDate()
+
+    # Check if storage space full
+    storage_usage_count = await get_storage_space_usage(session, space)
+    if space.capacity <= storage_usage_count:
+        raise StorageSpaceFull()
 
     item = Item(
         expiry_date=expiry_date,

@@ -6,8 +6,8 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
 
-from src.controllers.item import (ExpiredDate, create_item, delete_item,
-                                  get_item_by_id)
+from src.controllers.item import (ExpiredDate, StorageSpaceFull, create_item,
+                                  delete_item, get_item_by_id)
 from src.controllers.item_type import get_item_type_by_id
 from src.controllers.storage_space import get_storage_space_by_id
 from src.db import get_async_session
@@ -49,6 +49,8 @@ class ItemView(HTTPMethodView):
                 item = await create_item(session, space, item_type, expiry_date)
             except ExpiredDate:
                 raise SanicException("Date cannot be in the past.", status_code=403)
+            except StorageSpaceFull:
+                raise SanicException("Storage space is full.", status_code=403)
 
         return json(item.to_dict())
 

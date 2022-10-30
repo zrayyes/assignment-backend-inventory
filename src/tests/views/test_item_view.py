@@ -87,8 +87,29 @@ async def test_create_item_with_expired_date(
 
 
 @pytest.mark.asyncio
-async def test_create_item_all_storage_full(app):
-    pass
+async def test_create_item_storage_full(
+    app, add_storage_space, add_item_type, add_item
+):
+    space = await add_storage_space("very small space", 1, False)
+    item_type = await add_item_type("crackers", False)
+    await add_item(space, item_type)
+
+    date_str = format_date_to_str(date_after_n_days(1))
+    body = {
+        "expiry_date": date_str,
+        "storage_space_id": space.id,
+        "item_type_id": item_type.id,
+    }
+    url = app.url_for("item.ItemView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 403
+
+    url = app.url_for("storage_space.SingleStorageSpaceView", id=space.id)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 200
+    assert len(response.json["items"]) == 1
 
 
 @pytest.mark.asyncio
