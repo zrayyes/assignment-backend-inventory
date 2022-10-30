@@ -1,5 +1,8 @@
 from sanic import Blueprint
 
+from src.views.storage.item_type import item_type_blueprint
 from src.views.storage.space import storage_space_blueprint
 
-storage_blueprint = Blueprint.group(storage_space_blueprint, url_prefix="/storage")
+storage_blueprint = Blueprint.group(
+    [storage_space_blueprint, item_type_blueprint], url_prefix="/storage"
+)
