@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 
 from src.helpers import date_after_n_days, format_date_to_str
@@ -63,8 +65,25 @@ async def test_create_item_valid_storage(app, add_storage_space, add_item_type):
 
 
 @pytest.mark.asyncio
-async def test_create_item_with_expired_date(app):
-    pass
+@pytest.mark.parametrize(
+    "date_str",
+    ["01/01/2000", format_date_to_str(datetime.date.today())],
+)
+async def test_create_item_with_expired_date(
+    app, add_storage_space, add_item_type, date_str
+):
+    space = await add_storage_space("small space", 5, False)
+    item_type = await add_item_type("crackers", False)
+
+    body = {
+        "expiry_date": date_str,
+        "storage_space_id": space.id,
+        "item_type_id": item_type.id,
+    }
+    url = app.url_for("item.ItemView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 403
 
 
 @pytest.mark.asyncio

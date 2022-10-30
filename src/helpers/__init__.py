@@ -11,4 +11,4 @@ def format_date_to_str(date: date) -> str:
 
 
 def format_str_to_date(date_str: str) -> date:
-    return datetime.datetime.strptime(date_str, "%d/%m/%Y")
+    return datetime.datetime.strptime(date_str, "%d/%m/%Y").date()

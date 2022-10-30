@@ -8,6 +8,10 @@ from sqlalchemy.orm import selectinload
 from src.models import Item, ItemType, Space
 
 
+class ExpiredDate(Exception):
+    pass
+
+
 async def get_item_by_id(session: AsyncSession, id: int) -> Optional[Item]:
     stmt = (
         select(Item)
@@ -28,7 +32,10 @@ async def delete_item(session: AsyncSession, id: int):
 async def create_item(
     session: AsyncSession, space: Space, item_type: ItemType, expiry_date: date
 ) -> Item:
-    # VALIDATE HARD
+    # Check if date in the past
+    if expiry_date <= date.today():
+        raise ExpiredDate()
+
     item = Item(
         expiry_date=expiry_date,
         storage_space_id=space.id,
