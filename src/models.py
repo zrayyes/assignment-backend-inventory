@@ -1,4 +1,4 @@
-from sqlalchemy import DATETIME, Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import DATE, Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base, relationship
 
 from src.helpers import format_date_to_str
@@ -43,7 +43,7 @@ class ItemType(Base):
 class Item(Base):
     __tablename__ = "items"
     id = Column(Integer, primary_key=True)
-    expiry_date = Column(DATETIME, nullable=False)
+    expiry_date = Column(DATE, nullable=False)
     storage_space_id = Column(Integer, ForeignKey("storage_space.id"), nullable=False)
     item_type_id = Column(Integer, ForeignKey("item_type.id"), nullable=False)
 

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -12,6 +12,18 @@ async def get_storage_space_by_id(session: AsyncSession, id: int) -> Optional[Sp
     result = await session.execute(stmt)
     space = result.scalar()
     return space
+
+
+async def get_storage_space_usage(session: AsyncSession, space: Space) -> int:
+    stmt = (
+        select(func.count())
+        .select_from(Space)
+        .join(Space.items)
+        .where(Space.id == space.id)
+    )
+    result = await session.execute(stmt)
+    usage_count = result.scalar()
+    return usage_count
 
 
 async def get_all_items_for_storage_space(

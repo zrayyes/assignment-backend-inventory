@@ -23,6 +23,9 @@ shell:
 	$(exec) $(backend) sh
 
 test:
+	$(exec) -e SANIC_ENV=testing $(backend) pytest -x src/tests
+
+test-no-stop:
 	$(exec) -e SANIC_ENV=testing $(backend) pytest src/tests
 
 flake:

@@ -1,5 +1,7 @@
 import pytest
 
+from src.helpers import date_after_n_days, format_date_to_str
+
 
 @pytest.mark.asyncio
 async def test_get_existing_item(add_storage_space, add_item_type, add_item, app):
@@ -41,8 +43,23 @@ async def test_delete_existing_item(app, add_item, add_storage_space, add_item_t
 
 
 @pytest.mark.asyncio
-async def test_create_item_valid_storage(app):
-    pass
+async def test_create_item_valid_storage(app, add_storage_space, add_item_type):
+    space = await add_storage_space("small space", 5, False)
+    item_type = await add_item_type("crackers", False)
+    date_str = format_date_to_str(date_after_n_days(1))
+
+    body = {
+        "expiry_date": date_str,
+        "storage_space_id": space.id,
+        "item_type_id": item_type.id,
+    }
+    url = app.url_for("item.ItemView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 200
+    assert response.json["type"] == item_type.name
+    assert response.json["storage_space"] == space.name
+    assert response.json["expiry_date"] == date_str
 
 
 @pytest.mark.asyncio
