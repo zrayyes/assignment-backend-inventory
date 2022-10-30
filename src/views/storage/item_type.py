@@ -1,14 +1,19 @@
 from dataclasses import dataclass
 
 from sanic import Blueprint
+from sanic.exceptions import SanicException
+from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
+
+from src.controllers.item_type import create_item_type, get_item_type_by_name
+from src.db import get_async_session
 
 
 @dataclass
 class ItemTypeIn:
     name: str
-    need_fridge: bool
+    needs_fridge: bool
 
 
 @dataclass
@@ -31,7 +36,23 @@ class SingleItemTypeView(HTTPMethodView):
 class ItemTypeView(HTTPMethodView):
     @validate(json=ItemTypeIn)
     async def post(self, request, body: ItemTypeIn):
-        pass
+        async_session = await get_async_session()
+        async with async_session() as session:
+
+            item_type = await get_item_type_by_name(session, body.name)
+
+            if item_type:
+                raise SanicException(
+                    f"Item type with same name already exists. ItemType = {item_type.id}",
+                    status_code=403,
+                )
+
+            item_type = await create_item_type(
+                session,
+                name=body.name,
+                needs_fridge=body.needs_fridge,
+            )
+        return json(item_type.to_dict())
 
 
 item_type_blueprint = Blueprint("item_type")
