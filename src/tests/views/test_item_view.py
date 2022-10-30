@@ -136,13 +136,35 @@ async def test_create_item_in_incompatible_storage(
 
 
 @pytest.mark.asyncio
-async def test_create_item_with_non_existing_storage(app):
-    pass
+async def test_create_item_with_non_existing_storage(app, add_item_type):
+    item_type = await add_item_type("crackers", False)
+    date_str = format_date_to_str(date_after_n_days(1))
+
+    body = {
+        "expiry_date": date_str,
+        "storage_space_id": 5,
+        "item_type_id": item_type.id,
+    }
+    url = app.url_for("item.ItemView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 404
 
 
 @pytest.mark.asyncio
-async def test_create_item_with_non_existing_type(app):
-    pass
+async def test_create_item_with_non_existing_type(app, add_storage_space):
+    space = await add_storage_space("small space", 5, False)
+    date_str = format_date_to_str(date_after_n_days(1))
+
+    body = {
+        "expiry_date": date_str,
+        "storage_space_id": space.id,
+        "item_type_id": 5,
+    }
+    url = app.url_for("item.ItemView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 404
 
 
 @pytest.mark.asyncio
