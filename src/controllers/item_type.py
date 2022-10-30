@@ -1,9 +1,10 @@
-from typing import Optional
+from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.models import ItemType
+from src.models import Item, ItemType
 
 
 async def create_item_type(
@@ -37,4 +38,27 @@ async def update_item_type(
 ) -> ItemType:
     if "name" in kwargs:
         item_type.name = kwargs["name"]
+    await session.commit()
+
+
+async def get_all_items_for_item_type(
+    session: AsyncSession,
+    item_type_id: int,
+    count=None,
+) -> List[Item]:
+
+    statement = (
+        select(Item)
+        .where(Item.item_type_id == item_type_id)
+        .options(selectinload(Item.storage_space))
+        .options(selectinload(Item.item_type))
+        .limit(count)
+    )
+
+    result = await session.execute(statement)
+    return result.scalars().all()
+
+
+async def delete_item_type(session: AsyncSession, id: int):
+    await session.execute(delete(ItemType).where(ItemType.id == id))
     await session.commit()

@@ -193,3 +193,4 @@ async def test_delete_storage_space_not_empty(
     _, response = await app.asgi_client.get(url)
 
     assert response.status == 200
+    assert len(response.json["items"]) > 0

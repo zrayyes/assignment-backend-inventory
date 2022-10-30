@@ -6,7 +6,9 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
 
-from src.controllers.item_type import (create_item_type, get_item_type_by_id,
+from src.controllers.item_type import (create_item_type, delete_item_type,
+                                       get_all_items_for_item_type,
+                                       get_item_type_by_id,
                                        get_item_type_by_name, update_item_type)
 from src.db import get_async_session
 
@@ -60,7 +62,23 @@ class SingleItemTypeView(HTTPMethodView):
         return json(item_type.to_dict())
 
     async def delete(self, request, id):
-        pass
+        async_session = await get_async_session()
+
+        async with async_session() as session:
+            item_type = await get_item_type_by_id(session, id)
+
+            if not item_type:
+                raise SanicException("Item type does not exist.", status_code=404)
+
+            items = await get_all_items_for_item_type(session, item_type.id, 1)
+
+            if items:
+                raise SanicException(
+                    "Item type still has items attached.", status_code=403
+                )
+
+            await delete_item_type(session, item_type.id)
+        return json({}, status=201)
 
 
 class ItemTypeView(HTTPMethodView):

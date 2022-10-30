@@ -92,15 +92,30 @@ async def test_rename_existing_item_type_to_duplicate(add_item_type, app):
 
 
 @pytest.mark.asyncio
-async def test_delete_existing_item_type(app):
-    pass
+async def test_delete_existing_item_type(app, add_item_type):
+    item_type = await add_item_type("Milk", True)
+
+    url = app.url_for("item_type.SingleItemTypeView", id=item_type.id)
+    _, response = await app.asgi_client.delete(url)
+
+    assert response.status == 201
+
+    url = app.url_for("item_type.SingleItemTypeView", id=item_type.id)
+    _, response = await app.asgi_client.get(url)
+
+    assert response.status == 404
 
 
 @pytest.mark.asyncio
-async def test_delete_non_existing_item_type(app):
-    pass
+async def test_delete_item_type_with_items(
+    add_storage_space, add_item_type, add_item, app
+):
+    space = await add_storage_space("small space", 5, False)
+    item_type = await add_item_type("crackers", False)
+    await add_item(space, item_type)
 
+    url = app.url_for("item_type.SingleItemTypeView", id=item_type.id)
+    _, response = await app.asgi_client.delete(url)
 
-@pytest.mark.asyncio
-async def test_delete_item_type_with_items(app):
-    pass
+    assert response.status == 403
+    assert response.json["message"] == "Item type still has items attached."

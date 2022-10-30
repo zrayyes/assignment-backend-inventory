@@ -106,8 +106,7 @@ class SingleStorageSpaceView(HTTPMethodView):
             if not space:
                 raise SanicException("Storage space does not exist.", status_code=404)
 
-            # Could be optimized
-            items = await get_all_items_for_storage_space(session, space.id)
+            items = await get_all_items_for_storage_space(session, space.id, None, 1)
 
             if items:
                 raise SanicException(
