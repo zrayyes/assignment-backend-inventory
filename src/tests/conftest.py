@@ -8,10 +8,11 @@ from sanic_testing import TestManager
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.controllers.item_type import create_item_type
 from src.controllers.storage_space import create_storage_space
 from src.db import async_engine, get_async_session
 from src.helpers import date_after_n_days
-from src.models import Base, Item, ItemType
+from src.models import Base, Item
 from src.server import create_app
 
 
@@ -52,10 +53,7 @@ async def add_item_type():
         async_session = await get_async_session()
 
         async with async_session() as session:
-            # TODO: Move to controller
-            item_type = ItemType(name=name, needs_fridge=needs_fridge)
-            session.add(item_type)
-            await session.commit()
+            item_type = await create_item_type(session, name, needs_fridge)
         return item_type
 
     return _add_item_type
@@ -71,7 +69,6 @@ async def add_item():
         async_session = await get_async_session()
 
         async with async_session() as session:
-            # TODO: Move to controller
             item = Item(
                 storage_space_id=storage_space.id,
                 item_type_id=item_type.id,

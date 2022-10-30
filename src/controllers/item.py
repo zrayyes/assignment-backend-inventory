@@ -67,6 +67,7 @@ async def create_item(
     )
     session.add(item)
     await session.commit()
+    # Fetch relationships
     item.storage_space
     item.item_type
     return item
