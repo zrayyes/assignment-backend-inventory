@@ -113,8 +113,26 @@ async def test_create_item_storage_full(
 
 
 @pytest.mark.asyncio
-async def test_create_item_in_incompatible_storage(app):
-    pass
+@pytest.mark.parametrize(
+    "space_is_refrigerated, item_type_needs_fridge",
+    [(False, True), (True, False)],
+)
+async def test_create_item_in_incompatible_storage(
+    app, add_storage_space, add_item_type, space_is_refrigerated, item_type_needs_fridge
+):
+    space = await add_storage_space("very small space", 1, space_is_refrigerated)
+    item_type = await add_item_type("crackers", item_type_needs_fridge)
+
+    date_str = format_date_to_str(date_after_n_days(1))
+    body = {
+        "expiry_date": date_str,
+        "storage_space_id": space.id,
+        "item_type_id": item_type.id,
+    }
+    url = app.url_for("item.ItemView")
+    _, response = await app.asgi_client.post(url, json=body)
+
+    assert response.status == 403
 
 
 @pytest.mark.asyncio

@@ -17,6 +17,10 @@ class StorageSpaceFull(Exception):
     pass
 
 
+class IncompatibleStorageSpace(Exception):
+    pass
+
+
 async def get_item_by_id(session: AsyncSession, id: int) -> Optional[Item]:
     stmt = (
         select(Item)
@@ -40,6 +44,10 @@ async def create_item(
     # Check if date in the past
     if expiry_date <= date.today():
         raise ExpiredDate()
+
+    # Check if storage is incompatible
+    if space.is_refrigerated is not item_type.needs_fridge:
+        raise IncompatibleStorageSpace()
 
     # Check if storage space full
     storage_usage_count = await get_storage_space_usage(session, space)
