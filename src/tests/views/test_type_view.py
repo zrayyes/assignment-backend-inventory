@@ -62,13 +62,33 @@ async def test_get_non_existing_item_type(app):
 
 
 @pytest.mark.asyncio
-async def test_rename_existing_item_type(app):
-    pass
+async def test_rename_existing_item_type(app, add_item_type):
+    item_type = await add_item_type("Milk", True)
+
+    body = {"name": "Old Milk"}
+    url = app.url_for("item_type.SingleItemTypeView", id=item_type.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 200
+    assert response.json["id"] == item_type.id
+    assert response.json["name"] == body["name"]
+    assert response.json["needs_fridge"] == item_type.needs_fridge
 
 
 @pytest.mark.asyncio
-async def test_rename_existing_item_type_to_duplicate(app):
-    pass
+async def test_rename_existing_item_type_to_duplicate(add_item_type, app):
+    item_type = await add_item_type("Milk", True)
+    other_item_type = await add_item_type("Old Milk", True)
+
+    body = {"name": "Old Milk"}
+    url = app.url_for("item_type.SingleItemTypeView", id=item_type.id)
+    _, response = await app.asgi_client.patch(url, json=body)
+
+    assert response.status == 403
+    assert (
+        response.json["message"]
+        == f"Item type with same name already exists. ItemType = {other_item_type.id}"
+    )
 
 
 @pytest.mark.asyncio

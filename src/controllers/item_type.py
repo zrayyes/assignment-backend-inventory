@@ -30,3 +30,11 @@ async def get_item_type_by_name(session: AsyncSession, name: str) -> Optional[It
     result = await session.execute(stmt)
     item_type = result.scalar()
     return item_type
+
+
+async def update_item_type(
+    session: AsyncSession, item_type: ItemType, **kwargs
+) -> ItemType:
+    if "name" in kwargs:
+        item_type.name = kwargs["name"]
+    await session.commit()
