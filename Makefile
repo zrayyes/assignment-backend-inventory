@@ -25,8 +25,8 @@ shell:
 test:
 	$(exec) -e SANIC_ENV=testing $(backend) pytest -x src/tests
 
-test-no-stop:
-	$(exec) -e SANIC_ENV=testing $(backend) pytest src/tests
+test-coverage:
+	$(exec) -e SANIC_ENV=testing $(backend) pytest "src/tests" -p no:warnings --cov="src" --cov-report html
 
 flake:
 	$(exec) $(backend) flake8 src
