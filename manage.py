@@ -76,5 +76,5 @@ if __name__ == "__main__":
     else:
         print("#" * 28)
         print("Unsupported arguments, Try:")
-        print(supported_arguments)
+        print(*supported_arguments)
         print("#" * 28)

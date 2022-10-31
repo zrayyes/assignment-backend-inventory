@@ -115,4 +115,3 @@ DELETE -> `/storage/item/<item_id>`
 ```bash
 curl -X 'DELETE' 'http://localhost:8000/storage/item/1'
 ```
-

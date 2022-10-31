@@ -62,14 +62,14 @@ Visit `http://localhost:8000/health_check`
 
 ### Models
 
-![Design Diagram](./excalidraw/storage_backend.svg)
+![Design Diagram](./documents/excalidraw/storage_backend.svg)
 
 ### Architecure
 
 I picked an MVC architecure with a separate view/controller/model for each entity.  
 Views are stored in `src/views/...`  
 Controllers are stored in `src/controllers/...`  
-Models are stored in `src/models.py` 
+Models are stored in `src/models.py`
 
 ### Framework
 
@@ -77,6 +77,11 @@ I picked the Sanic Framework for Python as recommended. This was my first time w
 While I did eventually got everything to run as I want, I felt that Sanic is missing a lot of the features and in-depth documentation of frameworks like Flask and Django.  
 Missing: DB Connection (Like Flask-SQLAlchemy or Django Models).  
 Insufficient Documentation: Using an App factory, Request Validators, Response Serializers, Endpoint documentation.
+
+### Helpers
+
+I added a `manage.py` file to help with creating the database tables after starting the server, as well as populating the tables with dummy data.  
+I used a `Makefile` to store my commonly used commands. Eg. Starting/Stopping the dev server, following logs, running tests, linting/formatting, and re-creating/seeding the database tables.
 
 ### Testing
 
