@@ -56,8 +56,6 @@ Visit `http://localhost:8000/health_check`
 
 ## Usage
 
----
-
 ### Create Storage Space
 
 POST -> `/storage/space`  
