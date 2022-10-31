@@ -6,10 +6,10 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 from sanic_ext import validate
 
-from src.controllers.item_type import (create_item_type, delete_item_type,
+from src.controllers.item_type import (DuplicateItemType, create_item_type,
+                                       delete_item_type,
                                        get_all_items_for_item_type,
-                                       get_item_type_by_id,
-                                       get_item_type_by_name, update_item_type)
+                                       get_item_type_by_id, update_item_type)
 from src.db import get_async_session
 
 
@@ -46,18 +46,16 @@ class SingleItemTypeView(HTTPMethodView):
             if not item_type:
                 raise SanicException("Item type does not exist.", status_code=404)
 
-            item_type_with_same_name = await get_item_type_by_name(session, body.name)
-            if item_type_with_same_name:
-                if item_type_with_same_name.id != id:
-                    raise SanicException(
-                        f"Item type with same name already exists. ItemType = {item_type_with_same_name.id}",
-                        status_code=403,
-                    )
-
             update = {}
             update["name"] = body.name
 
-            await update_item_type(session, item_type, **update)
+            try:
+                await update_item_type(session, item_type, **update)
+            except DuplicateItemType as duplicate_e:
+                raise SanicException(
+                    duplicate_e,
+                    status_code=403,
+                )
 
         return json(item_type.to_dict())
 
@@ -86,20 +84,18 @@ class ItemTypeView(HTTPMethodView):
     async def post(self, request, body: ItemTypeIn):
         async_session = await get_async_session()
         async with async_session() as session:
-
-            item_type = await get_item_type_by_name(session, body.name)
-
-            if item_type:
+            try:
+                item_type = await create_item_type(
+                    session,
+                    name=body.name,
+                    needs_fridge=body.needs_fridge,
+                )
+            except DuplicateItemType as duplicate_e:
                 raise SanicException(
-                    f"Item type with same name already exists. ItemType = {item_type.id}",
+                    duplicate_e,
                     status_code=403,
                 )
 
-            item_type = await create_item_type(
-                session,
-                name=body.name,
-                needs_fridge=body.needs_fridge,
-            )
         return json(item_type.to_dict())
 
 

@@ -7,9 +7,22 @@ from sqlalchemy.orm import selectinload
 from src.models import Item, ItemType
 
 
+class DuplicateItemType(Exception):
+    pass
+
+
 async def create_item_type(
     session: AsyncSession, name: str, needs_fridge: bool
 ) -> ItemType:
+
+    # Check if item type with the same name already exists
+    same_item_type = await get_item_type_by_name(session, name)
+
+    if same_item_type:
+        raise DuplicateItemType(
+            f"Item type with same name already exists. ItemType = {same_item_type.id}"
+        )
+
     item_type = ItemType(
         name=name,
         needs_fridge=needs_fridge,
@@ -34,7 +47,19 @@ async def get_item_type_by_name(session: AsyncSession, name: str) -> Optional[It
 
 
 async def update_item_type(session: AsyncSession, item_type: ItemType, **kwargs):
+
+    # Rename Item Type
     if "name" in kwargs:
+
+        # Check if item type with the same name already exists
+        same_item_type = await get_item_type_by_name(session, kwargs["name"])
+
+        if same_item_type:
+            if same_item_type.id != item_type.id:
+                raise DuplicateItemType(
+                    f"Item type with same name already exists. ItemType = {same_item_type.id}"
+                )
+
         item_type.name = kwargs["name"]
     await session.commit()
 
