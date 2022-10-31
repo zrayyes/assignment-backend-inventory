@@ -73,6 +73,24 @@ Models are stored in `src/models.py`
 
 ### Framework
 
+I picked the Sanic Framework for Python as recommended. This was my first time working with an async backend framework for python as well.  
+While I did eventually got everything to run as I want, I felt that Sanic is missing a lot of the features and in-depth documentation of frameworks like Flask and Django.  
+Missing: DB Connection (Like Flask-SQLAlchemy or Django Models).  
+Insufficient Documentation: Using an App factory, Request Validators, Response Serializers, Endpoint documentation.
+
 ### Testing
 
+I tried my best to cover all use cases described in the original README document for this assignment.  
+I have mainly relied on integration tests for this assignment, as they allow me to cover a lot of use cases with less code.  
+Every test creates a new sanic app, an SQLite in-memory database, and SQL tables.
+
 ### What's Missing
+
+Given more time, I would have liked to add the following:
+
+- Pydoc for the important functions.
+- OpenAPI documentation for each endpoint.
+- Logging.
+- Unit Tests.
+- A production Dockerfile.
+- The ability to create an item using the storage name or item type instead of just id.
